@@ -1,0 +1,26 @@
+<resources>
+    
+    <style name="Theme.FloatingLabelPattern" parent="@android:style/Theme.Holo.Light.DarkActionBar">
+        <item name="floatingLabelControlStyle">@style/Widget.FloatingLabelControl</item>
+        <item name="floatingLabelEditTextStyle">@style/Widget.FloatingLabelEditText</item>
+        <item name="floatingLabelTextAppearance">@style/TextAppearance.FloatingLabel</item>
+    </style>
+
+    <style name="Widget.FloatingLabelControl" parent="@android:style/Widget">
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingTop">8.0dip</item>
+        <!-- <item name="ctFloatingHintTextColor">@color/floating_hint</item> -->
+        <item name="floatingLabelTextAppearance">@style/TextAppearance.FloatingLabel</item>
+    </style>
+
+    <style name="Widget.FloatingLabelEditText" parent="@style/Widget.FloatingLabelControl">
+        <item name="android:background">?android:attr/editTextBackground</item>
+    </style>
+
+    <style name="TextAppearance.FloatingLabel" parent="@android:style/TextAppearance">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <!-- <item name="android:textColor">@color/floating_hint</item> -->
+    </style>
+
+</resources>

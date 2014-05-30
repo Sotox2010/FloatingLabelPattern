@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="controlId" format="reference"/>
+    <attr name="floatingLabelText" format="string"/>
+    <attr name="floatingLabelTextAppearance" format="reference" />
+    <attr name="floatingLabelFocusedColor" format="color"/>
+    <attr name="floatingLabelUnfocusedColor" format="color"/>
+
+    <declare-styleable name="FloatingLabelControl">
+        <attr name="controlId"/>
+        <attr name="floatingLabelTextAppearance"/>
+        <attr name="floatingLabelText"/>
+        <attr name="floatingLabelFocusedColor"/>
+        <attr name="floatingLabelUnfocusedColor"/>
+    </declare-styleable>
+
+    <declare-styleable name="FloatingLabelEditText">
+        <attr name="android:hint"/>
+        <attr name="android:text"/>
+        <attr name="android:textAppearance"/>
+        <attr name="android:textSize"/>
+    </declare-styleable>
+
+    <attr name="floatingLabelControlStyle" format="reference" />
+    <attr name="floatingLabelEditTextStyle" format="reference" />
+
+</resources>

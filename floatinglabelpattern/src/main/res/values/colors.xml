@@ -1,0 +1,4 @@
+<resources>
+    <color name="floatingLabelFocused">#ff000000</color>
+    <color name="floatingLabelUnfocused">#ff808080</color>
+</resources>
