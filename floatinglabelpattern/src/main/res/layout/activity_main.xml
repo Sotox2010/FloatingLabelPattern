@@ -18,7 +18,6 @@
         android:layout_height="wrap_content"
         android:id="@+id/view4"
         android:hint="Some Hint"
-        android:layout_gravity="center_horizontal"
         fl:controlId="@+id/first_floating_label_edit_text"/>
 
     <com.example.floatinglabelpattern.widget.FloatingLabelEditText
@@ -27,8 +26,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4.0dip"
         android:hint="Some Hint 2"
-        android:layout_gravity="center_horizontal"
         fl:controlId="@+id/second_floating_label_edit_text"/>
+
+    <com.example.floatinglabelpattern.widget.FloatingLabelEditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:hint="Hint 3"
+        fl:controlId="@+id/third_flet"/>
 
 </LinearLayout>
 
