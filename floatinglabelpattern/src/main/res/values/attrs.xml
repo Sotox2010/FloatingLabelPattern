@@ -2,16 +2,14 @@
 <resources>
     <attr name="controlId" format="reference"/>
     <attr name="floatingLabelText" format="string"/>
-    <attr name="floatingLabelTextAppearance" format="reference" />
-    <attr name="floatingLabelFocusedColor" format="color"/>
-    <attr name="floatingLabelUnfocusedColor" format="color"/>
+    <attr name="floatingLabelTextAppearance" format="reference"/>
+    <attr name="floatingLabelColor" format="reference|color"/>
 
     <declare-styleable name="FloatingLabelControl">
         <attr name="controlId"/>
         <attr name="floatingLabelTextAppearance"/>
         <attr name="floatingLabelText"/>
-        <attr name="floatingLabelFocusedColor"/>
-        <attr name="floatingLabelUnfocusedColor"/>
+        <attr name="floatingLabelColor"/>
     </declare-styleable>
 
     <declare-styleable name="FloatingLabelEditText">
@@ -19,9 +17,15 @@
         <attr name="android:text"/>
         <attr name="android:textAppearance"/>
         <attr name="android:textSize"/>
+        <attr name="android:inputType"/>
     </declare-styleable>
 
-    <attr name="floatingLabelControlStyle" format="reference" />
-    <attr name="floatingLabelEditTextStyle" format="reference" />
+    <declare-styleable name="FloatingLabelSpinner">
+
+    </declare-styleable>
+
+    <attr name="floatingLabelControlStyle" format="reference"/>
+    <attr name="floatingLabelEditTextStyle" format="reference"/>
+    <attr name="floatingLabelSpinnerStyle" format="reference"/>
 
 </resources>

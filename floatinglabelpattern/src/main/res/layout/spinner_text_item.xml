@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:ellipsize="marquee"
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    android:gravity="left|center"
+    android:singleLine="true"
+    android:textAlignment="inherit"/>

@@ -5,6 +5,7 @@ import com.example.floatinglabelpattern.R;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -15,9 +16,12 @@ public class FloatingLabelEditText extends FloatingLabelControl<EditText> {
 
     private static final String TAG = "FloatingLabelEditText";
 
+    /**
+     * The default main EditText text size.
+     */
     private static final int DEFAULT_TEXT_SIZE = 18;
 
-    private EditText mEditText = (EditText) getControlView();
+    private final EditText mEditText = (EditText) getControlView();
 
     private String mHint;
     private String mText;
@@ -52,6 +56,12 @@ public class FloatingLabelEditText extends FloatingLabelControl<EditText> {
             mTextSize = a.getDimensionPixelSize(
                     R.styleable.FloatingLabelEditText_android_textSize, DEFAULT_TEXT_SIZE);
 
+            int inputType = a.getInteger(R.styleable.FloatingLabelEditText_android_inputType, -1);
+
+            if (inputType != -1) {
+                mEditText.setInputType(inputType);
+            }
+
             a.recycle();
         }
 
@@ -60,20 +70,13 @@ public class FloatingLabelEditText extends FloatingLabelControl<EditText> {
         mEditText.setTextSize(mTextSize);
         setFloatingLabelText(mHint);
 
-        mEditText.setOnFocusChangeListener(new OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                setFloatingLabelFocused(hasFocus);
-            }
-        });
-
         mEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.length() > 0) {
-                    slideUpToTop(true);
+                    fadeInToTop(true);
                 } else {
-                    slideDownToBottom(true);
+                    fadeOutToBottom(true);
                 }
             }
 
@@ -92,6 +95,62 @@ public class FloatingLabelEditText extends FloatingLabelControl<EditText> {
     @Override
     protected void inflateControlView(Context context) {
         LayoutInflater.from(context).inflate(R.layout.floating_label_edit_text_merge, this);
+    }
+
+    public CharSequence getText() {
+        return mEditText.getText();
+    }
+
+    public void setText(int resId) {
+        setText(getContext().getString(resId));
+    }
+
+    public void setText(CharSequence text) {
+        if (!TextUtils.isEmpty(text)) {
+            mEditText.setText(text);
+        }
+    }
+
+    public CharSequence getHint() {
+        return mEditText.getHint();
+    }
+
+    public void setHint(int resId) {
+        setHint(getContext().getString(resId));
+    }
+
+    public void setHint(CharSequence hint) {
+        if (!TextUtils.isEmpty(hint)) {
+            mEditText.setHint(hint);
+            setFloatingLabelText(hint);
+        }
+    }
+
+    public void setTextAppearance(Context context, int resId) {
+        if (resId != mTextAppearance) {
+            mEditText.setTextAppearance(context, resId);
+            mTextAppearance = resId;
+        }
+    }
+
+    public void setTextSize(float size) {
+        mEditText.setTextSize(size);
+    }
+
+    public void setTextSize(int unit, float size) {
+        mEditText.setTextSize(unit, size);
+    }
+
+    public void setInputType(int type) {
+        mEditText.setInputType(type);
+    }
+
+    public void addTextChangedListener(TextWatcher watcher) {
+        mEditText.addTextChangedListener(watcher);
+    }
+
+    public void removeTextChangedListener(TextWatcher watcher) {
+        mEditText.removeTextChangedListener(watcher);
     }
 
 }

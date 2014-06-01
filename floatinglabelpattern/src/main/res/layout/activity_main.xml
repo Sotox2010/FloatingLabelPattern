@@ -9,31 +9,34 @@
     tools:ignore="MergeRootFrame"
     android:orientation="vertical" >
 
-    <LinearLayout
-    android:focusable="true" android:focusableInTouchMode="true"
-    android:layout_width="0px" android:layout_height="0px"/>
-
     <com.example.floatinglabelpattern.widget.FloatingLabelEditText
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/view4"
-        android:hint="Some Hint"
+        android:hint="Full name"
+        android:inputType="text"
         fl:controlId="@+id/first_floating_label_edit_text"/>
 
     <com.example.floatinglabelpattern.widget.FloatingLabelEditText
         android:id="@+id/view5"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4.0dip"
-        android:hint="Some Hint 2"
+        android:hint="Phone number"
+        android:inputType="textPassword"
         fl:controlId="@+id/second_floating_label_edit_text"/>
 
-    <com.example.floatinglabelpattern.widget.FloatingLabelEditText
-        android:layout_width="fill_parent"
+    <com.example.floatinglabelpattern.widget.FloatingLabelSpinner
+        android:id="@+id/field_spinner"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:hint="Hint 3"
-        fl:controlId="@+id/third_flet"/>
+        fl:floatingLabelText="Spinner"
+        fl:controlId="@+id/spinner" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/button"
+        android:layout_gravity="center_horizontal"/>
 
 </LinearLayout>
-

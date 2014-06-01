@@ -6,11 +6,12 @@ import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.TimeInterpolator;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.graphics.Rect;
-import android.text.TextUtils;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Property;
@@ -27,7 +28,7 @@ public abstract class FloatingLabelControl<T extends View> extends LinearLayout 
     /**
      * The default interpolator for animations.
      */
-    private static final TimeInterpolator ANIMATOR_INTERPOLATOR = new DecelerateInterpolator(2.0f);
+    private static final TimeInterpolator ANIMATION_INTERPOLATOR = new DecelerateInterpolator(2.0f);
 
     /**
      * ARGB evaluator for color transition animations.
@@ -40,20 +41,22 @@ public abstract class FloatingLabelControl<T extends View> extends LinearLayout 
     private static final Property<TextView, Integer> TEXT_COLOR_PROPERTY =
             new TextViewColorProperty(Integer.TYPE, "textColor");
 
-    private TextView mFloatingLabel;
-    private T mControlView;
+    /**
+     * The default animation duration value.
+     */
+    private static final long ANIMATION_DURATION = 333L;
 
-    private CharSequence mFloatingLabelText;
-    private int mFloatingLabelFocusedColor;
-    private int mFloatingLabelUnfocusedColor;
+    private final TextView mFloatingLabel;
+    private final T mControlView;
+
+    private final ViewPropertyAnimator mFloatingLabelAnimator;
+    private final ObjectAnimator mFloatingLabelColorAnimator;
+    private final Rect mBoundsRect = new Rect();
+
+    private ColorStateList mFloatingLabelColor;
     private int mFloatingLabelTextAppearance;
-    private long mFloatingLabelAnimTime = 333L;
     private boolean mLaidOut = false;
     private boolean mFloating = false;
-    private Rect mBoundsRect = new Rect();
-
-    private ViewPropertyAnimator mFloatingLabelAnimator;
-    private ObjectAnimator mFloatingLabelColorAnimator;
 
     public FloatingLabelControl(Context context) {
         this(context, null);
@@ -66,7 +69,7 @@ public abstract class FloatingLabelControl<T extends View> extends LinearLayout 
     @SuppressWarnings("unchecked")
     public FloatingLabelControl(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        Resources resources = context.getResources();
+        final Resources resources = context.getResources();
 
         LayoutInflater.from(context).inflate(R.layout.floating_label_control_merge, this);
         inflateControlView(context);
@@ -74,13 +77,11 @@ public abstract class FloatingLabelControl<T extends View> extends LinearLayout 
         mFloatingLabel = (TextView) getChildAt(0);
         mControlView = (T) getChildAt(1);
         mFloatingLabelAnimator = mFloatingLabel.animate();
-        mFloatingLabelAnimator.setInterpolator(ANIMATOR_INTERPOLATOR);
+        mFloatingLabelAnimator.setInterpolator(ANIMATION_INTERPOLATOR);
         mFloatingLabelColorAnimator = ObjectAnimator.ofInt(mFloatingLabel, TEXT_COLOR_PROPERTY, 0);
         mFloatingLabelColorAnimator.setEvaluator(COLOR_EVALUATOR);
-        mFloatingLabelColorAnimator.setInterpolator(ANIMATOR_INTERPOLATOR);
-
-        mFloatingLabelFocusedColor = resources.getColor(R.color.floatingLabelFocused);
-        mFloatingLabelUnfocusedColor = resources.getColor(R.color.floatingLabelUnfocused);
+        mFloatingLabelColorAnimator.setInterpolator(ANIMATION_INTERPOLATOR);
+        mFloatingLabelColor = resources.getColorStateList(R.color.floating_label);
 
         if (attrs != null) {
             final TypedArray a = context.obtainStyledAttributes(
@@ -92,68 +93,61 @@ public abstract class FloatingLabelControl<T extends View> extends LinearLayout 
                     R.styleable.FloatingLabelControl_floatingLabelTextAppearance,
                             R.style.TextAppearance_FloatingLabel);
 
-            mFloatingLabelFocusedColor = a.getColor(
-                    R.styleable.FloatingLabelControl_floatingLabelFocusedColor,
-                            mFloatingLabelFocusedColor);
+            ColorStateList list = a.getColorStateList(
+                    R.styleable.FloatingLabelControl_floatingLabelColor);
 
-            mFloatingLabelUnfocusedColor = a.getColor(
-                    R.styleable.FloatingLabelControl_floatingLabelUnfocusedColor,
-                            mFloatingLabelUnfocusedColor);
+            if (list != null) {
+                mFloatingLabelColor = list;
+            }
 
-            mFloatingLabelText = a.getString(R.styleable.FloatingLabelControl_floatingLabelText);
+            mFloatingLabel.setText(a.getString(R.styleable.FloatingLabelControl_floatingLabelText));
 
             a.recycle();
         }
 
         mFloatingLabel.setTextAppearance(context, mFloatingLabelTextAppearance);
-        mFloatingLabel.setTextColor(mFloatingLabelUnfocusedColor);
-        mFloatingLabel.setText(mFloatingLabelText);
+        mFloatingLabel.setTextColor(mFloatingLabelColor.getDefaultColor());
 
         setAddStatesFromChildren(true);
     }
 
     protected abstract void inflateControlView(Context context);
 
-    protected void setFloatingLabelFocused(boolean hasFocus) {
-        if (hasFocus) {
-            focusOn(true);
-        } else {
-            focusOff(true);
-        }
-    }
-
     protected void toggleFloatingLabel() {
         if (mFloating) {
-            slideUpToTop(false);
+            fadeInToTop(false);
         } else {
-            slideDownToBottom(false);
+            fadeOutToBottom(false);
         }
     }
 
-    protected void focusOn(boolean animated) {
-        mFloatingLabelColorAnimator.setIntValues(mFloatingLabelFocusedColor);
-        mFloatingLabelColorAnimator.setDuration(animated ? mFloatingLabelAnimTime : 0);
+    protected void changeFloatingLabelState(int color, boolean animated) {
+        mFloatingLabelColorAnimator.setIntValues(color);
+        mFloatingLabelColorAnimator.setDuration(animated ? ANIMATION_DURATION : 0);
         mFloatingLabelColorAnimator.start();
     }
 
-    protected void focusOff(boolean animated) {
-        mFloatingLabelColorAnimator.setIntValues(mFloatingLabelUnfocusedColor);
-        mFloatingLabelColorAnimator.setDuration(animated ? mFloatingLabelAnimTime : 0);
-        mFloatingLabelColorAnimator.start();
+    protected void updateFloatingLabelColor() {
+        if (mControlView.isEnabled() && (mControlView.isFocused() || mControlView.isPressed())) {
+            changeFloatingLabelState(mFloatingLabelColor.getColorForState(FOCUSED_STATE_SET,
+                    mFloatingLabelColor.getDefaultColor()), true);
+        } else {
+            changeFloatingLabelState(mFloatingLabelColor.getDefaultColor(), true);
+        }
     }
 
-    protected void slideUpToTop(boolean animated) {
+    protected void fadeInToTop(boolean animated) {
         mFloatingLabelAnimator.alpha(1f)
                 .translationY(0)
-                .setDuration(animated ? mFloatingLabelAnimTime : 0)
+                .setDuration(animated ? ANIMATION_DURATION : 0)
                 .start();
         mFloating = true;
     }
 
-    protected void slideDownToBottom(boolean animated) {
+    protected void fadeOutToBottom(boolean animated) {
         mFloatingLabelAnimator.alpha(0f)
                 .translationY(mFloatingLabel.getHeight() / 2)
-                .setDuration(animated ? mFloatingLabelAnimTime : 0)
+                .setDuration(animated ? ANIMATION_DURATION : 0)
                 .start();
         mFloating = false;
     }
@@ -162,11 +156,13 @@ public abstract class FloatingLabelControl<T extends View> extends LinearLayout 
         return mControlView;
     }
 
-    public void setFloatingLabelText(CharSequence text) {
-        if (!TextUtils.equals(mFloatingLabelText, text)) {
-            mFloatingLabel.setText(text);
-            mFloatingLabelText = text;
+    @Override
+    protected int[] onCreateDrawableState(int extraSpace) {
+        if (mControlView == null) {
+            return super.onCreateDrawableState(extraSpace);
         }
+        updateFloatingLabelColor();
+        return mControlView.getDrawableState();
     }
 
     @Override
@@ -191,4 +187,83 @@ public abstract class FloatingLabelControl<T extends View> extends LinearLayout 
         setTouchDelegate(new TouchDelegate(mBoundsRect, mControlView));
     }
 
+    public CharSequence getFloatingLabelText() {
+        return mFloatingLabel.getText();
+    }
+
+    public void setFloatingLabelText(CharSequence text) {
+        mFloatingLabel.setText(text);
+    }
+
+    public ColorStateList getFloatingLabelColor() {
+        return mFloatingLabelColor;
+    }
+
+    public void setFloatingLabelColor(ColorStateList colorStateList) {
+        mFloatingLabelColor = colorStateList;
+        updateFloatingLabelColor();
+    }
+
+    public void setFloatingLabelTextAppearance(Context context, int resId) {
+        if (resId != mFloatingLabelTextAppearance) {
+            mFloatingLabel.setTextAppearance(context, resId);
+            mFloatingLabelTextAppearance = resId;
+        }
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+
+        if (isSaveEnabled()) {
+            SavedState ss = new SavedState(superState);
+            ss.mFloatingLabelColor = mFloatingLabelColor;
+            return ss;
+        }
+        return superState;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof SavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+
+        mFloatingLabelColor = ss.mFloatingLabelColor;
+    }
+
+    public static class SavedState extends BaseSavedState {
+        private ColorStateList mFloatingLabelColor;
+
+        public SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        public SavedState(Parcel in) {
+            super(in);
+            mFloatingLabelColor = in.readParcelable(getClass().getClassLoader());
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            mFloatingLabelColor.writeToParcel(out, flags);
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR = new Creator<SavedState>() {
+            @Override
+            public SavedState createFromParcel(Parcel parcel) {
+                return new SavedState(parcel);
+            }
+
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+    }
 }
